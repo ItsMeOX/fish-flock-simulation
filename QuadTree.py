@@ -9,7 +9,7 @@ class Circle:
     def contains(self, fish):
         return (fish.x - self.x) ** 2 + (fish.y - self.y) ** 2 <= self.r ** 2
 
-    def intersect(self, boundary):
+    def intersect_rect(self, boundary):
         boundary_center_x = (boundary.x1 + boundary.x2) / 2
         boundary_center_y = (boundary.y1 + boundary.y2) / 2
         boundary_width = boundary.x2 - boundary.x1
@@ -28,6 +28,10 @@ class Circle:
 
         return cornerDistance <= self.r**2
 
+    def intersect_circle(self, boundary):
+        distance = (boundary.x - self.x) ** 2 + (boundary.y - self.y) ** 2
+        return distance <= (boundary.r * 2) ** 2
+
 class Rectangle:
     def __init__(self, x1, y1, x2, y2):
         self.x1 = x1
@@ -38,31 +42,29 @@ class Rectangle:
     def contains(self, fish):
         return self.x1 <= fish.x <= self.x2 and self.y1 <= fish.y <= self.y2
 
-    def intersect(self, boundary):
-        return max(self.x1, boundary.x1) <= min(self.x2, boundary.x2)
-
 class QuadTree:
-    def __init__(self, boundary, capacity = 4):
+    def __init__(self, boundary, effective_dist, capacity = 4):
         self.boundary = boundary
         self.capacity = capacity
-        self.points = []
+        self.other_fishes = []
         self.divided = False
         self.topLeft = self.topRight = self.bottomLeft = self.bottomRight = None
+        self.effective_dist = effective_dist
 
-    def draw(self, screen):
-        pygame.draw.rect(screen, (255, 0, 0), (self.boundary.x1, self.boundary.y1, self.boundary.x2-self.boundary.x1, self.boundary.y2-self.boundary.y1), 1)
-        if self.divided:
-            self.topLeft.draw(screen)
-            self.topRight.draw(screen)
-            self.bottomLeft.draw(screen)
-            self.bottomRight.draw(screen)
+    # def draw(self, screen):
+    #     pygame.draw.rect(screen, (255, 0, 0), (self.boundary.x1, self.boundary.y1, self.boundary.x2-self.boundary.x1, self.boundary.y2-self.boundary.y1), 1)
+    #     if self.divided:
+    #         self.topLeft.draw(screen)
+    #         self.topRight.draw(screen)
+    #         self.bottomLeft.draw(screen)
+    #         self.bottomRight.draw(screen)
 
     def insert(self, fish):
         if not self.boundary.contains(fish):
             return False
         
-        if len(self.points) < self.capacity:
-            self.points.append((fish.x, fish.y))
+        if len(self.other_fishes) < self.capacity:
+            self.other_fishes.append(fish)
             return True
         
         if not self.divided:
@@ -82,11 +84,12 @@ class QuadTree:
         if not res:
             res = []
         
-        if not self.boundary.contains(fish) or not Circle(fish.x, fish.y, 30).intersect(self.boundary):
-            return
+        if not Circle(fish.x, fish.y, self.effective_dist).intersect_rect(self.boundary):
+            return res
         
-        for point in self.points:
-            res.append(point)
+        for other_fish in self.other_fishes:
+            if Circle(fish.x, fish.y, self.effective_dist).intersect_circle(Circle(other_fish.x, other_fish.y, self.effective_dist)):
+                res.append(other_fish)
 
         if self.divided:
             self.topLeft.query(fish, res)
@@ -95,4 +98,3 @@ class QuadTree:
             self.bottomRight.query(fish, res)
 
         return res
-        

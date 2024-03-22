@@ -8,15 +8,17 @@ BG_COLOR = (0, 0, 0)
 FPS = 144
 WIDTH = 800
 HEIGHT = 600
-FISH_COUNT = 50
+FISH_COUNT = 100
 SEPARATION_DIST = 20
 ALIGNMENT_DIST = 30
 COHESION_DIST = 10
 BORDER_DIST = 30
-SEPARATION_MOUSE_DIST = 50
+SEPARATION_MOUSE_DIST = 30
 SEPARATION_SCALE = 0.1
 ALIGNMENT_SCALE = 0.15
 COHESION_SCALE = 0.12
+a = 1
+QUERY_DIST = max(BORDER_DIST, COHESION_DIST, ALIGNMENT_DIST, SEPARATION_DIST, SEPARATION_MOUSE_DIST)
 
 # Initialize the game
 pygame.init()
@@ -36,20 +38,20 @@ class Fish:
 
         for i in range(13):
             cur_image = pygame.image.load(f'./assets/fish2/{i}.png').convert_alpha()
-            cur_image = pygame.transform.scale(cur_image, (cur_image.get_width()/5, cur_image.get_height()/5))
+            cur_image = pygame.transform.scale(cur_image, (cur_image.get_width()//5, cur_image.get_height()//5))
             self.sprites.append(cur_image)
 
         self.image = self.sprites[self.current_sprite_index]
 
-    def draw(self):
+    def draw(self, neighbour_fishes):
         self.x += self.vel_x
         self.y += self.vel_y
 
-        separation_dvx, separation_dvy = self.separation()
+        separation_dvx, separation_dvy = self.separation(neighbour_fishes)
         self.vel_x += separation_dvx
         self.vel_y += separation_dvy
 
-        alignment_dvx, alignment_dvy = self.alignment()
+        alignment_dvx, alignment_dvy = self.alignment(neighbour_fishes)
         old_vel_magnitude = util.magnitude(self.vel_x, self.vel_y)
         self.vel_x += alignment_dvx
         self.vel_y += alignment_dvy
@@ -57,7 +59,7 @@ class Fish:
         self.vel_x = self.vel_x / new_vel_magnitude * old_vel_magnitude
         self.vel_y = self.vel_y / new_vel_magnitude * old_vel_magnitude
 
-        cohesion_dvx, cohesion_dvy = self.cohesion()
+        cohesion_dvx, cohesion_dvy = self.cohesion(neighbour_fishes)
         old_vel_magnitude = util.magnitude(self.vel_x, self.vel_y)
         self.vel_x += cohesion_dvx * 0.015
         self.vel_y += cohesion_dvy * 0.015
@@ -102,11 +104,11 @@ class Fish:
                     -(x - self.x) * math.sin(radian) + (y - self.y) * math.cos(radian) + self.y
                     ]
 
-    def separation(self):
+    def separation(self, neighbour_fishes):
         separation_velocity = [0, 0]
         boid_count = 0
 
-        for fish in fishes:
+        for fish in neighbour_fishes:
             if fish == self: continue
             distance = util.distance(self.x, self.y, fish.x, fish.y)
             if distance <= SEPARATION_DIST:
@@ -151,11 +153,11 @@ class Fish:
 
         return separation_velocity
 
-    def alignment(self):
+    def alignment(self, neighbour_fishes):
         alignment_velocity = [0, 0]
         boid_count = 0
 
-        for fish in fishes:
+        for fish in neighbour_fishes:
             if fish == self: continue
             distance = util.distance(fish.x, fish.y, self.x, self.y)
             if distance <= ALIGNMENT_DIST:
@@ -172,11 +174,11 @@ class Fish:
         
         return alignment_velocity
 
-    def cohesion(self):
+    def cohesion(self, neighbour_fishes):
         cohesion_velocity = [0, 0]
         boid_count = 0
 
-        for fish in fishes:
+        for fish in neighbour_fishes:
             if fish == self: continue
             distance = util.distance(self.x, self.y, fish.x, fish.y)
             if distance <= COHESION_DIST:
@@ -234,17 +236,13 @@ while running:
     mouse_x, mouse_y = pygame.mouse.get_pos()
     pygame.draw.circle(screen, (255, 255, 255), (mouse_x, mouse_y), SEPARATION_MOUSE_DIST, 1)
 
-    quadTree = QuadTree(Rectangle(0, 0, WIDTH, HEIGHT))
+    quadTree = QuadTree(Rectangle(0, 0, WIDTH, HEIGHT), QUERY_DIST)
     for fish in fishes:
         quadTree.insert(fish)
-    quadTree.draw(screen)
 
     for fish in fishes:
-        if fish == debug_fish:
-            pygame.draw.circle(screen, (255, 255, 0), (fish.x, fish.y), 30, 1)
-            res = quadTree.query(fish)
-            if res:
-                print(len(res))
+        neighbour_fishes = quadTree.query(fish) #n^2 -> nlogn avg (n^2 at worst)
+
         if fish.x < 0:
             fish.x = WIDTH
             fish.vel_x = uniform(-1.5, -0.5)*0.8
@@ -258,9 +256,7 @@ while running:
             fish.y = 0
             fish.vel_y = uniform(0.5, 1.5)*0.8
 
-
-        fish.draw()
-
+        fish.draw(neighbour_fishes=neighbour_fishes)
 
     pygame.display.update()
 
