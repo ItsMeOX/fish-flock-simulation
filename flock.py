@@ -2,12 +2,13 @@ import pygame
 from random import randint, random, uniform
 import math
 import time
+from QuadTree import *
 
 BG_COLOR = (0, 0, 0)
 FPS = 144
 WIDTH = 800
 HEIGHT = 600
-FISH_COUNT = 60
+FISH_COUNT = 50
 SEPARATION_DIST = 20
 ALIGNMENT_DIST = 30
 COHESION_DIST = 10
@@ -64,6 +65,7 @@ class Fish:
         self.vel_x = self.vel_x / new_vel_magnitude * old_vel_magnitude
         self.vel_y = self.vel_y / new_vel_magnitude * old_vel_magnitude
 
+        ###
         # pygame.draw.circle(screen, (255, 255, 255), (self.x, self.y), SEPARATION_DIST, 1)
         # upper = [[self.x, self.y], [self.x-6, self.y-8], [self.x, self.y-28], [self.x+6, self.y-8]]
         # lower = [[self.x, self.y],[self.x-6, self.y+8],[self.x+6, self.y+8]]
@@ -75,19 +77,19 @@ class Fish:
         # self.orientate(lower)
         # pygame.draw.polygon(screen, self.color, upper)
         # pygame.draw.polygon(screen, self.color, lower)
+        ###
 
         self.image = self.sprites[self.current_sprite_index]
         if time.time() - self.last_frame > 0.05:
             self.current_sprite_index = (self.current_sprite_index + 1) % len(self.sprites)
             self.last_frame = time.time()
-        
+
         #!test
         radian = math.atan2(self.vel_y, -self.vel_x) - math.pi/2  # + math.pi/2
         rotated_image = pygame.transform.rotate(self.image,math.degrees(radian) - 20)
 
-        screen.blit(rotated_image, (self.x, self.y))
+        screen.blit(rotated_image, (self.x-rotated_image.get_width()/2, self.y-rotated_image.get_height()/2))
 
-                
 
     def orientate(self, points):
         radian = math.atan2(self.vel_y, -self.vel_x) + math.pi/2
@@ -213,11 +215,12 @@ util = Util()
 fishes = []
 
 for _ in range(FISH_COUNT):
-    fishes.append(Fish(20, 20))
+    fishes.append(Fish(25, 25))
 
 running = True
 bg = pygame.image.load('./assets/water_bg.png').convert()
 bg = pygame.transform.smoothscale(bg, screen.get_size())
+debug_fish = fishes[0]
 
 while running:
     screen.fill(BG_COLOR)
@@ -231,8 +234,17 @@ while running:
     mouse_x, mouse_y = pygame.mouse.get_pos()
     pygame.draw.circle(screen, (255, 255, 255), (mouse_x, mouse_y), SEPARATION_MOUSE_DIST, 1)
 
-    in_bound = []
+    quadTree = QuadTree(Rectangle(0, 0, WIDTH, HEIGHT))
     for fish in fishes:
+        quadTree.insert(fish)
+    quadTree.draw(screen)
+
+    for fish in fishes:
+        if fish == debug_fish:
+            pygame.draw.circle(screen, (255, 255, 0), (fish.x, fish.y), 30, 1)
+            res = quadTree.query(fish)
+            if res:
+                print(len(res))
         if fish.x < 0:
             fish.x = WIDTH
             fish.vel_x = uniform(-1.5, -0.5)*0.8
@@ -248,6 +260,7 @@ while running:
 
 
         fish.draw()
+
 
     pygame.display.update()
 
