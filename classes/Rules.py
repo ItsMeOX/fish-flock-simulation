@@ -11,7 +11,7 @@ class Rules:
             neighbour_fishes: queries neighbour fishes surrounding obj from quad tree
         '''
 
-    def separation(self, obj, neighbour_fishes, neighbour_foods, mouse_x, mouse_y):
+    def separation(self, obj, neighbour_fishes, neighbour_foods, neighbour_lures, mouse_x, mouse_y):
         separation_velocity = [0, 0]
         boid_count = 0
 
@@ -37,6 +37,17 @@ class Rules:
             separation_velocity[1] -= 3*normalized_delta_y/distance
             boid_count += 1
             break
+
+        # for lure in neighbour_lures:
+        #     delta_x = obj.x - lure.x
+        #     delta_y = obj.y - lure.y
+        #     normalized_delta_x, normalized_delta_y = self.util.normalize(delta_x, delta_y)
+
+        #     distance = self.util.distance(obj.x, obj.y, lure.x, lure.y)
+        #     separation_velocity[0] -= normalized_delta_x/distance
+        #     separation_velocity[1] -= normalized_delta_y/distance
+        #     boid_count += 1
+        #     break
 
         # right
         if WIDTH - obj.x <= BORDER_DIST:
@@ -71,7 +82,7 @@ class Rules:
 
         return separation_velocity
 
-    def alignment(self, obj, neighbour_fishes, neighbour_foods):
+    def alignment(self, obj, neighbour_fishes, neighbour_foods, neighbour_lures):
         alignment_velocity = [0, 0]
         boid_count = 0
 
@@ -86,6 +97,11 @@ class Rules:
         for food in neighbour_foods:
             alignment_velocity[0] += (food.x - obj.x) * food.attractiveness
             alignment_velocity[1] += (food.y - obj.y) * food.attractiveness
+            boid_count += 1
+
+        for lure in neighbour_lures:
+            alignment_velocity[0] += 0.005*(lure.x - obj.x)
+            alignment_velocity[1] += 0.005*(lure.y - obj.y)
             boid_count += 1
 
         if boid_count:

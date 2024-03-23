@@ -30,15 +30,15 @@ class Fish:
 
         self.image = self.sprites[self.current_sprite_index]
 
-    def update(self, neighbour_fishes, neighbour_foods, dt, mouse_x, mouse_y):
+    def update(self, neighbour_fishes, neighbour_foods, neighbour_lures, dt, mouse_x, mouse_y):
         self.x += self.vel_x
         self.y += self.vel_y
 
-        separation_dvx, separation_dvy = self.rules.separation(self, neighbour_fishes, neighbour_foods, mouse_x, mouse_y)
+        separation_dvx, separation_dvy = self.rules.separation(self, neighbour_fishes, neighbour_foods, neighbour_lures, mouse_x, mouse_y)
         self.vel_x += separation_dvx
         self.vel_y += separation_dvy
 
-        alignment_dvx, alignment_dvy = self.rules.alignment(self, neighbour_fishes, neighbour_foods)
+        alignment_dvx, alignment_dvy = self.rules.alignment(self, neighbour_fishes, neighbour_foods, neighbour_lures)
         old_vel_magnitude = self.util.magnitude(self.vel_x, self.vel_y)
         self.vel_x += alignment_dvx
         self.vel_y += alignment_dvy
