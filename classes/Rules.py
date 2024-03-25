@@ -5,13 +5,13 @@ from constants import *
 
 class Rules:
     def __init__(self):
-        self.util = Util()
         '''
             obj: fish / fishfoods
             neighbour_fishes: queries neighbour fishes surrounding obj from quad tree
         '''
+        self.util = Util()
 
-    def separation(self, obj, neighbour_fishes, neighbour_foods, neighbour_lures, mouse_x, mouse_y):
+    def separation(self, obj, neighbour_fishes, neighbour_foods, neighbour_lures, neighbour_stomps, mouse_x, mouse_y):
         separation_velocity = [0, 0]
         boid_count = 0
 
@@ -37,6 +37,16 @@ class Rules:
             separation_velocity[1] -= 3*normalized_delta_y/distance
             boid_count += 1
             break
+
+        for stomp in neighbour_stomps:
+            delta_x = obj.x - stomp.x
+            delta_y = obj.y - stomp.y
+            normalized_delta_x, normalized_delta_y = self.util.normalize(delta_x, delta_y)
+
+            distance = self.util.distance(obj.x, obj.y, stomp.x, stomp.y)
+            separation_velocity[0] += 2000*normalized_delta_x/distance
+            separation_velocity[1] += 2000*normalized_delta_y/distance
+            boid_count += 1
 
         # for lure in neighbour_lures:
         #     delta_x = obj.x - lure.x

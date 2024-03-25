@@ -30,11 +30,11 @@ class Fish:
 
         self.image = self.sprites[self.current_sprite_index]
 
-    def update(self, neighbour_fishes, neighbour_foods, neighbour_lures, dt, mouse_x, mouse_y):
+    def update(self, neighbour_fishes, neighbour_foods, neighbour_lures, neighbour_stomps, dt, mouse_x, mouse_y):
         self.x += self.vel_x
         self.y += self.vel_y
 
-        separation_dvx, separation_dvy = self.rules.separation(self, neighbour_fishes, neighbour_foods, neighbour_lures, mouse_x, mouse_y)
+        separation_dvx, separation_dvy = self.rules.separation(self, neighbour_fishes, neighbour_foods, neighbour_lures, neighbour_stomps, mouse_x, mouse_y)
         self.vel_x += separation_dvx
         self.vel_y += separation_dvy
 
