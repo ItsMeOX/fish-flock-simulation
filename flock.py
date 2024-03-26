@@ -63,15 +63,17 @@ while running:
             pygame.quit()
             quit()
 
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            stomps.append(Circle(mouse_x, mouse_y, STOMP_DIST))
+            cursor_circle_color = (255, 0, 0)
+
+
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_f:
                 fishfoods.append(FishFood(mouse_x, mouse_y, screen))
             elif event.key == pygame.K_g:
                 lures.append(Lure(mouse_x, mouse_y, screen, alpha_srf))
-            elif event.key == pygame.K_SPACE:
-                stomps.append(Circle(mouse_x, mouse_y, STOMP_DIST))
-                cursor_circle_color = (255, 0, 0)
-
+            
     # Fish quadtree initialization & popularizing
     fish_quadTree = QuadTree(Rectangle(0, 0, WIDTH, HEIGHT), screen)
     for fish in fishes:

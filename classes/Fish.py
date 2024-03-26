@@ -25,7 +25,7 @@ class Fish:
 
         for i in range(13):
             cur_image = pygame.image.load(f'./assets/fish2/{i}.png').convert_alpha()
-            cur_image = pygame.transform.scale(cur_image, (cur_image.get_width()//5, cur_image.get_height()//5))
+            cur_image = pygame.transform.scale(cur_image, (cur_image.get_width(), cur_image.get_height()))
             self.sprites.append(cur_image)
 
         self.image = self.sprites[self.current_sprite_index]
