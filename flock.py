@@ -67,7 +67,6 @@ while running:
             stomps.append(Circle(mouse_x, mouse_y, STOMP_DIST))
             cursor_circle_color = (255, 0, 0)
 
-
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_f:
                 fishfoods.append(FishFood(mouse_x, mouse_y, screen))
