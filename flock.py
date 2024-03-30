@@ -4,17 +4,21 @@ from typing import List
 import requests
 import time
 
-from db.api import Firebase
+# from db.api import Firebase
 from classes.Fish import Fish
 from classes.FishFood import FishFood
 from classes.Lure import Lure
 from classes.QuadTree import *
 from constants import *
+try:
+    from gesture_detector.detector_v2 import app
+except Exception as e:
+    print(e)
 
 # Firebase initialization
 # Test
-firebase = Firebase()
-response = requests.get(firebase.get_imageURL('ItsMeOX', 'fish'))
+# firebase = Firebase()
+# response = requests.get(firebase.get_imageURL('ItsMeOX', 'fish'))
 # img = pygame.image.load(BytesIO(response.content))
 
 # Pygame & window initialization

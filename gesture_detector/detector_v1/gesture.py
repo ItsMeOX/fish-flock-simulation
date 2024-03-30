@@ -9,7 +9,6 @@ import tensorflow as tf
 
 print("Num GPUs Available: ", len(tf.config.list_physical_devices('GPU')))
 
-
 # Initialize MediaPipe Hands module
 mp_hands = mp.solutions.hands
 hands = mp_hands.Hands()
@@ -19,9 +18,11 @@ mp_drawing = mp.solutions.drawing_utils
 
 # Open a video capture object (0 for the default camera)
 cap = cv2.VideoCapture(0)
+address = 'https://192.168.1.21:8080/video'
+cap.open(address)
 
 classNames = ['okay', 'peace', 'thumbs up', 'thumbs down', 'call me', 'stop', 'rock', 'live long', 'fist', 'smile']
-model = load_model('mp_hand_gesture')
+model = tf.saved_model.load('mp_hand_gesture')
 
 while cap.isOpened():
     ret, frame = cap.read()
@@ -47,12 +48,13 @@ while cap.isOpened():
 
             # Draw landmarks on the frame
         mp_drawing.draw_landmarks(frame, hand_landmarks, mp_hands.HAND_CONNECTIONS)
-
-        prediction = model.predict([landmarks])
-        classID = np.argmax(prediction)
-        className = classNames[classID]
-        cv2.putText(frame, className, (10, 50), cv2.FONT_HERSHEY_SIMPLEX,
-               	1, (0,0,255), 2, cv2.LINE_AA)
+        try:
+            prediction = model([landmarks])
+            classID = np.argmax(prediction)
+            className = classNames[classID]
+            cv2.putText(frame, className, (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,0,255), 2, cv2.LINE_AA)
+        except Exception as e:
+            print(e)
 
     # Display the frame with hand landmarks
     cv2.imshow('Hand Recognition', frame)
